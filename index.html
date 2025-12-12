@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>King Menelaus’s Christmas Cake Puzzle</title>
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+            line-height: 1.5;
+            background: #faf7f2;
+            color: #222;
+        }
+
+        .wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 32px 18px;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        .hint {
+            opacity: .85;
+            font-size: 0.98rem;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            flex: 1 1 260px;
+            padding: 12px 14px;
+            font-size: 1.05rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.18);
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: rgba(0, 0, 0, 0.35);
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
+        }
+
+        button {
+            padding: 12px 14px;
+            font-size: 1.05rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #1f6feb;
+            color: #fff;
+            user-select: none;
+        }
+
+        button:hover {
+            filter: brightness(0.95);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            /* neutral */
+        }
+
+        details {
+            margin-top: 14px;
+            border: 1px solid rgba(0, 0, 0, 0.10);
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: #fffdf9;
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 650;
+        }
+
+        .details-inner {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(0, 0, 0, 0.18);
+        }
+
+        .bullets {
+            margin: 8px 0 0 18px;
+        }
+
+        .msg {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        .ok {
+            background: #f0fff3;
+            border-color: rgba(0, 120, 30, 0.25);
+        }
+
+        .no {
+            background: #fff6f6;
+            border-color: rgba(180, 0, 0, 0.20);
+        }
+
+        .hintbox {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            background: #f7fbff;
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        .tiny {
+            font-size: 0.9rem;
+            opacity: .75;
+            margin-top: 10px;
+        }
+
+        .footer {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            opacity: .7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="card">
+            <h1>King Menelaus’s Christmas Cake Puzzle</h1>
+            <p class="hint">Enter the magic word to unlock your final message.</p>
+
+            <!-- Instructions (collapsible) -->
+            <details>
+                <summary>Instructions</summary>
+                <div class="details-inner" id="instructionsBox">
+                    <!-- Filled by JS so you can edit it in one place -->
+                </div>
+            </details>
+
+            <!-- Magic word input -->
+            <div class="row">
+                <input id="magic" type="text" inputmode="latin" autocomplete="off" spellcheck="false"
+                    placeholder="Type the magic word…" aria-label="Magic word" />
+                <button id="checkBtn" type="button">Unlock</button>
+                <button id="hintBtn" class="btn-secondary" type="button" title="Get a hint">Hint</button>
+            </div>
+
+            <div id="hintBox" class="hintbox" role="status" aria-live="polite"></div>
+            <div id="msg" class="msg" role="status" aria-live="polite"></div>
+
+            <p class="tiny">Tip: it’s not case-sensitive. Spaces and punctuation don’t matter.</p>
+            <div class="footer">🎄</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // EDIT THESE THREE THINGS
+        // ============================================================
+
+        // 1) The magic word:
+        const ANSWER = "GRATITUDE";
+
+        // 2) Instructions shown on the page:
+        const INSTRUCTIONS_HTML = `
+      <p>Solve the crossword and sudoku as normal until both grids are complete.</p>
+      <ul class="bullets">
+        <li>Some crossword squares correspond to some sudoku squares.</li>
+        <li>The sudoku numbers tell you the order to read the crossword letters.</li>
+        <li>Read the letters from 1 through 9 to reveal the magic word.</li>
+      </ul>
+      <p><em>Subtle nudge:</em> think “along” then “down”.</p>
+    `;
+
+        // 3) Hints (each press reveals the next one):
+        const HINTS = [
+            "Hint 1: The crossword and sudoku share a coordinate system.",
+            "Hint 2: Use columns (A–I) and rows (1–9). Same coordinate = same square.",
+            "Hint 3: The sudoku numbers (1–9) tell you the letter order."
+        ];
+
+        // ============================================================
+        // Logic (no need to edit below here)
+        // ============================================================
+
+        const instructionsBox = document.getElementById("instructionsBox");
+        const input = document.getElementById("magic");
+        const checkBtn = document.getElementById("checkBtn");
+        const hintBtn = document.getElementById("hintBtn");
+        const msg = document.getElementById("msg");
+        const hintBox = document.getElementById("hintBox");
+
+        instructionsBox.innerHTML = INSTRUCTIONS_HTML;
+
+        function playFanfare() {
+            const audio = document.getElementById("fanfareAudio");
+            if (!audio) return;
+
+            audio.currentTime = 0; // rewind in case they retry
+            audio.play().catch(() => {
+                // ignored — browser may block autoplay in rare cases
+            });
+        }
+
+
+        function normalise(s) {
+            return (s || "")
+                .toUpperCase()
+                .replace(/[^A-Z]/g, "");
+        }
+
+        function showMessage(message, ok) {
+            msg.style.display = "block";
+            msg.className = "msg " + (ok ? "ok" : "no");
+            msg.textContent = message;
+        }
+
+        let hintIndex = 0;
+        function showNextHint() {
+            hintBox.style.display = "block";
+            const hintText = HINTS[Math.min(hintIndex, HINTS.length - 1)];
+            hintBox.textContent = hintText;
+
+            if (hintIndex < HINTS.length - 1) hintIndex += 1;
+        }
+
+        function check() {
+            const guess = normalise(input.value);
+            if (!guess) {
+                showMessage("Pop a word in first 🙂", false);
+                return;
+            }
+            if (guess === ANSWER) {
+                playFanfare();
+                showMessage(
+                    `✅ Correct!
+
+The magic word is gratitude.
+
+Over the past year — and in the years leading up to it — your time, support, and belief have shaped where I am now in ways I don’t always say out loud. I simply wouldn’t be doing what I’m doing without you. These last few years have brought moments of doubt and worry, but they’ve also brought clarity, adventure, and more than a few challenges (some good, some… educational). Through it all, I’ve learned that while we can’t always change what’s in front of us, we can change how we meet it.
+
+I’m deeply grateful for the opportunities I’ve had, the people I share my life with, and the sense of possibility that’s grown where fear used to sit. Looking ahead to 2026, I feel hopeful, energised, and ready for whatever comes next — preferably with curiosity, confidence, and a decent amount of snacks.
+
+`,
+                    true
+                );
+            } else {
+                showMessage("❌ Not quite — try again.", false);
+            }
+        }
+
+        checkBtn.addEventListener("click", check);
+        hintBtn.addEventListener("click", showNextHint);
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") check();
+        });
+    </script>
+    <audio id="fanfareAudio" preload="auto">
+        <source src="assets/fanfare.mp3" type="audio/mpeg">
+    </audio>
+
+</body>
+
+</html>
